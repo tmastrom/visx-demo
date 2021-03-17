@@ -19,7 +19,7 @@ const purple1 = "#6c5efb";
 const purple2 = "#c998ff";
 const purple3 = "#a44afe";
 const background = "#eaedff";
-const defaultMargin = { top: 40, right: 0, bottom: 0, left: 0 };
+const defaultMargin = { top: 40, right: 0, bottom: 100, left: 0 };
 const tooltipStyles = {
   ...defaultStyles,
   minWidth: 60,
@@ -31,14 +31,11 @@ const tooltipStyles = {
 const lineCount = 1;
 const series = new Array(lineCount).fill(null).map((_, i) =>
   // vary each series value deterministically
-  generateDateValue(25, /* seed= */ i / 72).sort(
+  generateDateValue(25, /* seed= */ 5 / 15).sort(
     (a, b) => a.date.getTime() - b.date.getTime(),
   ),
 );
 const allData = series.reduce((rec, d) => rec.concat(d), []);
-
-console.log(typeof(allData));
-console.log(allData);
 
 // data accessors
 const getX = (d) => d.date;
@@ -53,6 +50,11 @@ const yScale = scaleLinear({
     domain: [0, max(allData, getY)],
 });
 
+const parseDate = timeParse("%Y-%m-%d");
+const format = timeFormat("%b %d");
+const formatDate = (date) => format(parseDate(date));
+
+
 
 
 export default function DoubleLineChart ({
@@ -60,12 +62,14 @@ export default function DoubleLineChart ({
     height, 
     margin = defaultMargin
 }) {
-    const svgHeight =  height;
+    const svgHeight =  height - 40;
     const lineHeight = svgHeight / lineCount;
+    const xMax = width;
+    const yMax = height - margin.top - 100;
 
     // update scale output ranges
-    xScale.range([0, width - 50]);
-    yScale.range([lineHeight - 2, 0]);
+    xScale.range([50, width - 100]);
+    yScale.range([lineHeight - 300, 100]);
 
     return(
         <div style={{ position: "relative" }}>
@@ -78,7 +82,7 @@ export default function DoubleLineChart ({
                 fill={background}
                 rx={14}
                 />
-                <Group top={margin.top}>
+                <Group top={100}>
                     <LinePath
                         curve={ allCurves.curveNatural }
                         data={ allData }
@@ -89,9 +93,9 @@ export default function DoubleLineChart ({
                         strokeOpacity={ 0.6 }
                     />
                 </Group>
-                {/* <AxisBottom
+                <AxisBottom
                     top={yMax + margin.top}
-                    scale={dateScale}
+                    scale={xScale}
                     tickFormat={formatDate}
                     stroke={purple3}
                     tickStroke={purple3}
@@ -100,7 +104,7 @@ export default function DoubleLineChart ({
                         fontSize: 11,
                         textAnchor: "middle"
                     })}
-                /> */}
+                />
             </svg>
         </div>
   );
